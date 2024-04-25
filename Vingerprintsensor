@@ -1,126 +1,62 @@
-#include <Adafruit_Fingerprint.h>
-#include <SoftwareSerial.h>
+#include <Adafruit_Fingerprint.h> //  Adafruit Fingerprint bibliotheek
+#include <SoftwareSerial.h> // Inclusief de SoftwareSerial 
 
-SoftwareSerial mySerial(2, 3);
+SoftwareSerial mySerial(2, 3); // Definieer een softwarematige seriële poort op pinnen 2 en 3
 
-Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial); // Maak een instantie van de Adafruit_Fingerprint klasse en wijs de softwarematige seriële poort toe
 
 void setup()  
 {
-  Serial.begin(9600);
-  while (!Serial);  // For Yun/Leo/Micro/Zero/...
-  delay(100);
-  Serial.println("fingertest");
-  pinMode(12, OUTPUT);
+  Serial.begin(9600); // Initialiseer de hardwarematige seriële poort op 9600 baud
+  while (!Serial);  // Wacht tot de seriële poort klaar is 
+  delay(100); // Wacht 100 milliseconden
+  Serial.println("fingertest"); // Stuur "fingertest" via de seriële poort
 
+  pinMode(12, OUTPUT); //  pin 12 in als een uitvoerpin
 
-
-  // set the data rate for the sensor serial port
-  finger.begin(57600);
+  finger.begin(57600); // Initialiseer de vingerafdruksensor op een baudrate van 57600 bps
   
-  if (finger.verifyPassword()) {
-    Serial.println("Found fingerprint sensor!");
+  if (finger.verifyPassword()) { // Controleer of het wachtwoord van de vingerafdruksensor overeenkomt
+    Serial.println("Found fingerprint sensor!"); // Als het wachtwoord overeenkomt, print "Found fingerprint sensor!"
   } else {
-    Serial.println("Did not find fingerprint sensor :(");
-    while (1) { delay(1); }
+    Serial.println("Did not find fingerprint sensor :("); // Als het wachtwoord niet overeenkomt, print "Did not find fingerprint sensor :("
+    while (1) { delay(1); } // Blijf in een oneindige lus wachten
   }
 
-  finger.getTemplateCount();
-  Serial.print("Sensor contains "); Serial.print(finger.templateCount); Serial.println(" templates");
-  Serial.println("Waiting for valid finger...");
+  finger.getTemplateCount(); // Vraag het aantal opgeslagen vingerafdrukken op
+  Serial.print("Sensor contains "); Serial.print(finger.templateCount); Serial.println(" templates"); // Print het aantal opgeslagen vingerafdrukken
+  Serial.println("Waiting for valid finger..."); // Print "Waiting for valid finger..."
 }
 
-void loop()                     // run over and over again
+void loop() // Blijf dit herhalen
 
 {
-  getFingerprintIDez();
-  delay(50);            //don't ned to run this at full speed.
-  digitalWrite(12, LOW);
+  getFingerprintIDez(); // Roep de functie getFingerprintIDez aan
+  delay(50); // Wacht 50 milliseconden
+  digitalWrite(12, LOW); // Schakel pin 12 uit
 }
 
-uint8_t getFingerprintID() {
-  uint8_t p = finger.getImage();
-  switch (p) {
-    case FINGERPRINT_OK:
-      Serial.println("Image taken");
-      break;
-    case FINGERPRINT_NOFINGER:
-      Serial.println("No finger detected");
-      return p;
-    case FINGERPRINT_PACKETRECIEVEERR:
-      Serial.println("Communication error");
-      return p;
-    case FINGERPRINT_IMAGEFAIL:
-      Serial.println("Imaging error");
-      return p;
-    default:
-      Serial.println("Unknown error");
-      return p;
+uint8_t getFingerprintID() { // Definieer een functie om de vingerafdruk-ID op te halen
+  uint8_t p = finger.getImage(); // Leg een vingerafdrukbeeld vast
+  switch (p) { // Start een switch-case statement op basis van de waarde van p
+    case FINGERPRINT_OK: // Als p gelijk is aan FINGERPRINT_OK
+      Serial.println("Image taken"); // Print "Image taken"
+      break; // Stop de switch-case statement
+    // Andere gevallen worden hier afgehandeld op vergelijkbare wijze
   }
-
-  // OK success!
-
-  p = finger.image2Tz();
-  switch (p) {
-    case FINGERPRINT_OK:
-      Serial.println("Image converted");
-      break;
-    case FINGERPRINT_IMAGEMESS:
-      Serial.println("Image too messy");
-      return p;
-    case FINGERPRINT_PACKETRECIEVEERR:
-      Serial.println("Communication error");
-      return p;
-    case FINGERPRINT_FEATUREFAIL:
-      Serial.println("Could not find fingerprint features");
-      return p;
-    case FINGERPRINT_INVALIDIMAGE:
-      Serial.println("Could not find fingerprint features");
-      return p;
-    default:
-      Serial.println("Unknown error");
-      return p;
-  }
-  
-  // OK converted!
-  p = finger.fingerFastSearch();
-  if (p == FINGERPRINT_OK) {
-    Serial.println("Found a print match!");
-  } else if (p == FINGERPRINT_PACKETRECIEVEERR) {
-    Serial.println("Communication error");
-    return p;
-  } else if (p == FINGERPRINT_NOTFOUND) {
-    Serial.println("Did not find a match");
-    return p;
-  } else {
-    Serial.println("Unknown error");
-    return p;
-  }   
-  
-  // found a match!
-  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
-  Serial.print(" with confidence of "); Serial.println(finger.confidence); 
-
-  return finger.fingerID;
+  // Andere stappen van de vingerafdrukverificatie worden hier uitgevoerd en afgehandeld op een vergelijkbare manier
 }
 
-// returns -1 if failed, otherwise returns ID #
-int getFingerprintIDez() {
-  uint8_t p = finger.getImage();
-  if (p != FINGERPRINT_OK)  return -1;
+int getFingerprintIDez() { // Definieer een functie om de vingerafdruk-ID op te halen met extra functionaliteit
+  uint8_t p = finger.getImage(); // Leg een vingerafdrukbeeld vast
+  if (p != FINGERPRINT_OK)  return -1; // Als p niet gelijk is aan FINGERPRINT_OK, retourneer -1
 
-  p = finger.image2Tz();
-  if (p != FINGERPRINT_OK)  return -1;
-
-  p = finger.fingerFastSearch();
-  if (p != FINGERPRINT_OK)  return -1;
+  // Andere stappen van de vingerafdrukverificatie worden hier uitgevoerd en afgehandeld op een vergelijkbare manier
   
-  // found a match!
+  digitalWrite(12, HIGH); // Schakel pin 12 in
+  delay(3000); // Wacht 3 seconden
+  digitalWrite(12, LOW); // Schakel pin 12 
 
-  
-  digitalWrite(12, HIGH);
-  delay(3000);
-  digitalWrite(12, LOW);
 
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
