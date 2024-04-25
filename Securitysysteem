@@ -1,5 +1,5 @@
-const int pirPin = 3;
-const int buzzerPin = 9;
+const int pirPin = 3; //pinnen
+const int buzzerPin = 9; //pin buzzer
 unsigned long pirStartTime = 0;
 bool pirActive = false;
 
@@ -9,12 +9,12 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(pirPin) == HIGH && !pirActive) {
+  if (digitalRead(pirPin) == HIGH && !pirActive) { // als pir sensor actief is
     pirStartTime = millis(); // Start de timer als de PIR-sensor beweging detecteert
     pirActive = true;
   }
   
-  if (pirActive && millis() - pirStartTime >= 30000) {
+  if (pirActive && millis() - pirStartTime >= 30000) { // voor 30 seconden
     while (digitalRead(pirPin) == HIGH) {
       tone(buzzerPin, 400); // Laat de buzzer klinken zolang de PIR-sensor actief is
       delay(500); // Wacht 0,5 seconde voordat de buzzer opnieuw klinkt
