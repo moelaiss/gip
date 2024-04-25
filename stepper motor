@@ -1,31 +1,32 @@
-#include <Stepper.h>
+#include <Stepper.h> // Inclusief de Stepper bibliotheek voor het aansturen van de stepper motor
 
-const int stepsPerRevolution = 2048;  // stappen per revolutie
+const int stepsPerRevolution = 2048;  // aantal stappen per revolutie van de motor
 
-// ULN2003 Motor Driver Pins
+// Pins voor ULN2003 Motor Driver
 #define IN1 19
 #define IN2 18
 #define IN3 5
 #define IN4 17
 
-// stepper library
+// Creëer een instantie van de Stepper klasse met de opgegeven parameters
 Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
 
 void setup() {
-  // 5 rpm
+  // Stel de snelheid van de motor in op 5 omwentelingen per minuut
   myStepper.setSpeed(5);
-  // initialize the serial port
+  // Initialiseer de seriële poort voor communicatie met de computer
   Serial.begin(115200);
 }
 
 void loop() {
-  // een directie :
-  Serial.println("clockwise");
-  myStepper.step(stepsPerRevolution);
-  delay(1000);
+  // Stap voorwaarts (met de klok mee)
+  Serial.println("clockwise"); // Print "clockwise" naar de seriële monitor
+  myStepper.step(stepsPerRevolution); // Laat de motor een volledige omwenteling in de voorwaartse richting uitvoeren
+  delay(1000); // Wacht 1 seconde
 
-  // andere directie :
-  Serial.println("counterclockwise");
-  myStepper.step(-stepsPerRevolution);
-  delay(1000);
+  // Stap achterwaarts (tegen de klok in)
+  Serial.println("counterclockwise"); // Print "counterclockwise" naar de seriële monitor
+  myStepper.step(-stepsPerRevolution); // Laat de motor een volledige omwenteling in de achterwaartse richting uitvoeren
+  delay(1000); // Wacht 1 seconde
 }
+
