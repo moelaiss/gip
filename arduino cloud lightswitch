@@ -1,29 +1,27 @@
-#include "thingProperties.h"
-
-const int relayPin = 23;
+#include "thingProperties.h"  
+const int relayPin = 23;  // Definieert het pin-nummer voor het relais
 
 void setup() {
-  Serial.begin(115200);
-  delay(1500); 
+  Serial.begin(115200);  // Initialisatie van seriële communicatie
+  delay(1500);  
 
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, LOW);
+  pinMode(relayPin, OUTPUT);  // Zet de relayPin als output
+  digitalWrite(relayPin, LOW);  // Zet de relayPin laag (relais uit)
 
-  initProperties();
-  ArduinoCloud.begin(ArduinoIoTPreferredConnection);
-  setDebugMessageLevel(2);
-  ArduinoCloud.printDebugInfo();
+  initProperties();  // Initialisatie van IoT-eigenschappen
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);  
+  setDebugMessageLevel(2);  
+  ArduinoCloud.printDebugInfo();  
 }
 
 void loop() {
-  ArduinoCloud.update();
-  
+  ArduinoCloud.update();  // Update de verbinding met de Arduino Cloud
 
-  static bool previouslmpState = false;
-  if (lmp == 1) {
-    digitalWrite(relayPin, HIGH);
-  } else{
-    digitalWrite(relayPin, LOW);
-      }
-  
+  static bool previouslmpState = false;  // Houdt de vorige staat van de lamp bij
+  if (lmp == 1) {  // Controleer of de lamp aan staat 
+    digitalWrite(relayPin, HIGH);  // Zet het relais aan
+  } else {
+    digitalWrite(relayPin, LOW);  // Zet het relais uit
+  }
 }
+
