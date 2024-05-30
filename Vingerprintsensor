@@ -1,64 +1,57 @@
-#include <Adafruit_Fingerprint.h> //  Adafruit Fingerprint bibliotheek
-#include <SoftwareSerial.h> // Inclusief de SoftwareSerial 
+#include <Adafruit_Fingerprint.h>
+#include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(2, 3); // Definieer een softwarematige seriële poort op pinnen 2 en 3
+// Maak een softwarematige seriële poort aan
+SoftwareSerial mySerial(2, 3); // RX, TX
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
-Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial); // Maak een instantie van de Adafruit_Fingerprint klasse en wijs de softwarematige seriële poort toe
+int relayPin = 8;
 
-void setup()  
-{
-  Serial.begin(9600); // Initialiseer de hardwarematige seriële poort op 9600 baud
-  while (!Serial);  // Wacht tot de seriële poort klaar is 
-  delay(100); // Wacht 100 milliseconden
-  Serial.println("fingertest"); // Stuur "fingertest" via de seriële poort
+void setup() {
+  Serial.begin(9600);
+  while (!Serial);  // Wacht tot seriële monitor is verbonden
 
-  pinMode(12, OUTPUT); //  pin 12 in als een uitvoerpin
+  Serial.println("Fingerprint sensor initializing...");
+  finger.begin(57600);
 
-  finger.begin(57600); // Initialiseer de vingerafdruksensor op een baudrate van 57600 bps
-  
-  if (finger.verifyPassword()) { // Controleer of het wachtwoord van de vingerafdruksensor overeenkomt
-    Serial.println("Found fingerprint sensor!"); // Als het wachtwoord overeenkomt, print "Found fingerprint sensor!"
+  if (finger.verifyPassword()) {
+    Serial.println("Fingerprint sensor found!");
   } else {
-    Serial.println("Did not find fingerprint sensor :("); // Als het wachtwoord niet overeenkomt, print "Did not find fingerprint sensor :("
-    while (1) { delay(1); } // Blijf in een oneindige lus wachten
+    Serial.println("Did not find fingerprint sensor :(");
+    while (1);
   }
 
-  finger.getTemplateCount(); // Vraag het aantal opgeslagen vingerafdrukken op
-  Serial.print("Sensor contains "); Serial.print(finger.templateCount); Serial.println(" templates"); // Print het aantal opgeslagen vingerafdrukken
-  Serial.println("Waiting for valid finger..."); // Print "Waiting for valid finger..."
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, LOW); // Zorg ervoor dat het relais in eerste instantie uit staat
 }
 
-void loop() // Blijf dit herhalen
+void loop() {
+  Serial.println("Waiting for a valid finger...");
+  int result = finger.getImage();
 
-{
-  getFingerprintIDez(); // Roep de functie getFingerprintIDez aan
-  delay(50); // Wacht 50 milliseconden
-  digitalWrite(12, LOW); // Schakel pin 12 uit
-}
+  if (result == FINGERPRINT_OK) {
+    Serial.println("Image taken");
+    result = finger.image2Tz();
 
-uint8_t getFingerprintID() { // Definieer een functie om de vingerafdruk-ID op te halen
-  uint8_t p = finger.getImage(); // Leg een vingerafdrukbeeld vast
-  switch (p) { // Start een switch-case statement op basis van de waarde van p
-    case FINGERPRINT_OK: // Als p gelijk is aan FINGERPRINT_OK
-      Serial.println("Image taken"); // Print "Image taken"
-      break; // Stop de switch-case statement
-    // Andere gevallen worden hier afgehandeld op vergelijkbare wijze
+    if (result == FINGERPRINT_OK) {
+      Serial.println("Image converted");
+      result = finger.fingerFastSearch();
+
+      if (result == FINGERPRINT_OK) {
+        Serial.println("Fingerprint matched!");
+        digitalWrite(relayPin, HIGH); // Activeer het relais
+        delay(5000); // Houd de solenoid 5 seconden geactiveerd
+        digitalWrite(relayPin, LOW); // Deactiveer het relais
+      } else {
+        Serial.println("Fingerprint did not match.");
+      }
+    } else {
+      Serial.println("Image conversion failed");
+    }
+  } else {
+    Serial.println("No valid finger found");
   }
-  // Andere stappen van de vingerafdrukverificatie worden hier uitgevoerd en afgehandeld op een vergelijkbare manier
+
+  delay(1000); // Wacht even voor de volgende scan
 }
 
-int getFingerprintIDez() { // Definieer een functie om de vingerafdruk-ID op te halen met extra functionaliteit
-  uint8_t p = finger.getImage(); // Leg een vingerafdrukbeeld vast
-  if (p != FINGERPRINT_OK)  return -1; // Als p niet gelijk is aan FINGERPRINT_OK, retourneer -1
-
-  // Andere stappen van de vingerafdrukverificatie worden hier uitgevoerd en afgehandeld op een vergelijkbare manier
-  
-  digitalWrite(12, HIGH); // Schakel pin 12 in
-  delay(3000); // Wacht 3 seconden
-  digitalWrite(12, LOW); // Schakel pin 12 
-
-
-  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
-  Serial.print(" with confidence of "); Serial.println(finger.confidence);
-  return finger.fingerID; 
-}
