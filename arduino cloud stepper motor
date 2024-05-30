@@ -1,0 +1,75 @@
+#include "thingProperties.h"
+#include <AccelStepper.h>
+
+// Definieer de pins voor de motor aansturing
+#define IN1 18
+#define IN2 19
+#define IN3 22
+#define IN4 23
+
+// Aantal stappen per omwenteling van de motor
+const int stepsPerRevolution = 2048; 
+
+// Initialiseer de stepper motor met halfstap mode
+AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
+
+void setup() {
+  // Initialiseer seriële communicatie
+  Serial.begin(9600);
+  delay(1500); // Wacht voor seriële monitor om verbinding te maken
+
+  // Stel maximale snelheid en acceleratie voor de stepper in
+  stepper.setMaxSpeed(500);
+  stepper.setAcceleration(100);
+
+  // Initialiseer de IoT eigenschappen
+  pinMode(clockwise, INPUT);
+  pinMode(anticlockwise, INPUT);
+  initProperties();
+
+  // Maak verbinding met Arduino IoT Cloud
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);
+
+  // Stel debug informatieniveau in (0 tot 4, waarbij 2 hier is gekozen)
+  setDebugMessageLevel(2);
+  ArduinoCloud.printDebugInfo();
+}
+
+void loop() {
+  // Update de verbinding met de IoT Cloud
+  ArduinoCloud.update();
+  // Laat de stepper motor draaien met de ingestelde snelheid
+  stepper.runSpeed();
+}
+
+void handleStepperControl() {
+  // Controleer de richting en snelheid van de motor
+  if (clockwise == HIGH) {
+    stepper.setSpeed(500); // Zet snelheid voor de wijzers van de klok mee
+    stepper.enableOutputs(); // Activeer motor outputs
+    Serial.println("Clockwise");
+  } else if (anticlockwise == HIGH) {
+    stepper.setSpeed(-500); // Zet snelheid tegen de wijzers van de klok in
+    stepper.enableOutputs(); // Activeer motor outputs
+    Serial.println("Counterclockwise");
+  } else {
+    stepper.setSpeed(0); // Stop de motor
+    stepper.disableOutputs(); // Deactiveer motor outputs
+    Serial.println("Motor Stopped");
+  }
+}
+
+/*
+  Wordt uitgevoerd elke keer als de waarde van de IoT Cloud variabele "clockwise" verandert.
+*/
+void onClockwiseChange() {
+  handleStepperControl(); // Verwerk de verandering in motorbesturing
+}
+
+/*
+  Wordt uitgevoerd elke keer als de waarde van de IoT Cloud variabele "anticlockwise" verandert.
+*/
+void onAnticlockwiseChange() {
+  handleStepperControl(); // Verwerk de verandering in motorbesturing
+}
+
